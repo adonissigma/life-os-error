@@ -1,1 +1,448 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Life OS</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<div id="app" x-data="lifeOS()" x-init="init()" x-cloak class="app-shell">
 
+  <!-- SIDEBAR -->
+  <aside class="sidebar glass">
+    <div class="brand">
+      <span class="brand-dot"></span> Life OS
+    </div>
+    <nav class="nav">
+      <template x-for="item in nav" :key="item.id">
+        <button class="nav-btn" :class="{active: view===item.id}" @click="view=item.id">
+          <span class="nav-icon" x-text="item.icon"></span>
+          <span x-text="item.label"></span>
+        </button>
+      </template>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="nav-btn" @click="toggleTheme()">
+        <span class="nav-icon" x-text="db.settings.theme==='dark' ? '☀️' : '🌙'"></span>
+        <span x-text="db.settings.theme==='dark' ? 'Sáng' : 'Tối'"></span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <header class="topbar glass">
+      <input class="search" x-model="search" placeholder="Tìm task, journal, habit... (⌘K)" />
+      <button class="btn" @click="showExport=true">📤 Export</button>
+      <button class="btn" @click="showReview=true">📊 Review</button>
+    </header>
+
+    <section class="content">
+
+      <!-- DASHBOARD -->
+      <template x-if="view==='dashboard'">
+        <div>
+          <h1 class="page-title" x-text="greeting()"></h1>
+          <p class="page-sub" x-text="todayLabel()"></p>
+
+          <div class="grid grid-4">
+            <div class="card glass stat">
+              <div class="stat-label">Task hôm nay</div>
+              <div class="stat-value" x-text="todayTasks().length"></div>
+              <div class="stat-sub" x-text="doneTodayTasks() + ' hoàn thành'"></div>
+            </div>
+            <div class="card glass stat">
+              <div class="stat-label">Habits đã tick</div>
+              <div class="stat-value" x-text="habitsDoneToday() + '/' + db.habits.length"></div>
+              <div class="stat-sub">hôm nay</div>
+            </div>
+            <div class="card glass stat">
+              <div class="stat-label">Chi tiêu hôm nay</div>
+              <div class="stat-value" x-text="fmt(spentToday())"></div>
+              <div class="stat-sub" x-text="'Ngân sách: ' + fmt(db.settings.dailyBudget||0)"></div>
+            </div>
+            <div class="card glass stat">
+              <div class="stat-label">Streak viết</div>
+              <div class="stat-value" x-text="journalStreak()"></div>
+              <div class="stat-sub">ngày liên tiếp</div>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card glass">
+              <div class="card-title">✅ Task hôm nay</div>
+              <template x-for="t in todayTasks()" :key="t.id">
+                <div class="task" :class="{done:t.done}">
+                  <div class="checkbox" :class="{checked:t.done}" @click="toggleTask(t)">
+                    <span x-show="t.done">✓</span>
+                  </div>
+                  <span class="task-title" x-text="t.title"></span>
+                </div>
+              </template>
+              <p x-show="!todayTasks().length" class="empty">Không có task nào hôm nay.</p>
+            </div>
+
+            <div class="card glass">
+              <div class="card-title">🔁 Habits hôm nay</div>
+              <template x-for="h in db.habits" :key="h.id">
+                <div class="task" :class="{done: isHabitDone(h.id)}">
+                  <div class="checkbox" :class="{checked: isHabitDone(h.id)}" @click="toggleHabit(h.id)">
+                    <span x-show="isHabitDone(h.id)">✓</span>
+                  </div>
+                  <span class="task-title" x-text="h.name"></span>
+                  <span class="badge" x-text="habitStreak(h.id) + '🔥'"></span>
+                </div>
+              </template>
+              <p x-show="!db.habits.length" class="empty">Chưa có habit nào. Vào tab Habits để thêm.</p>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- TASKS -->
+      <template x-if="view==='tasks'">
+        <div>
+          <h1 class="page-title">✅ Tasks</h1>
+          <div class="card glass">
+            <div class="row">
+              <input class="input" x-model="newTask.title" @keydown.enter="addTask()" placeholder="Task mới... (nhấn Enter)" />
+              <input class="input" type="date" x-model="newTask.due" />
+              <select class="input" x-model.number="newTask.priority">
+                <option :value="0">P0 — Khẩn</option>
+                <option :value="1">P1 — Cao</option>
+                <option :value="2">P2 — Trung</option>
+                <option :value="3">P3 — Thấp</option>
+              </select>
+              <button class="btn primary" @click="addTask()">+ Thêm</button>
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="row row-between">
+              <div class="tabs">
+                <button class="tab" :class="{active: taskFilter==='all'}" @click="taskFilter='all'">Tất cả</button>
+                <button class="tab" :class="{active: taskFilter==='today'}" @click="taskFilter='today'">Hôm nay</button>
+                <button class="tab" :class="{active: taskFilter==='upcoming'}" @click="taskFilter='upcoming'">7 ngày tới</button>
+                <button class="tab" :class="{active: taskFilter==='done'}" @click="taskFilter='done'">Đã xong</button>
+              </div>
+              <span class="muted" x-text="filteredTasks().length + ' task'"></span>
+            </div>
+
+            <template x-for="t in filteredTasks()" :key="t.id">
+              <div class="task" :class="{done:t.done}">
+                <div class="checkbox" :class="{checked:t.done}" @click="toggleTask(t)">
+                  <span x-show="t.done">✓</span>
+                </div>
+                <div class="task-body">
+                  <div class="task-title" x-text="t.title"></div>
+                  <div class="task-meta">
+                    <span x-show="t.due" x-text="'📅 ' + t.due"></span>
+                    <span class="prio" :data-p="t.priority" x-text="'P' + t.priority"></span>
+                  </div>
+                </div>
+                <button class="icon-btn" @click="deleteTask(t.id)">✕</button>
+              </div>
+            </template>
+            <p x-show="!filteredTasks().length" class="empty">Không có task.</p>
+          </div>
+        </div>
+      </template>
+
+      <!-- HABITS -->
+      <template x-if="view==='habits'">
+        <div>
+          <h1 class="page-title">🔁 Habits</h1>
+          <div class="card glass">
+            <div class="row">
+              <input class="input" x-model="newHabit.name" @keydown.enter="addHabit()" placeholder="Habit mới... (VD: Uống 2L nước)" />
+              <input class="input" x-model="newHabit.icon" placeholder="Icon (emoji)" style="max-width:100px" />
+              <button class="btn primary" @click="addHabit()">+ Thêm</button>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <template x-for="h in db.habits" :key="h.id">
+              <div class="card glass">
+                <div class="row row-between">
+                  <div class="row" style="gap:10px">
+                    <span style="font-size:24px" x-text="h.icon || '🔁'"></span>
+                    <div>
+                      <div class="task-title" x-text="h.name"></div>
+                      <div class="muted small" x-text="'Streak: ' + habitStreak(h.id) + ' ngày'"></div>
+                    </div>
+                  </div>
+                  <button class="icon-btn" @click="deleteHabit(h.id)">✕</button>
+                </div>
+                <div class="heatmap">
+                  <template x-for="d in last30Days()" :key="d">
+                    <div class="heat-cell" :class="{on: isHabitDone(h.id, d)}" @click="toggleHabit(h.id, d)" :title="d"></div>
+                  </template>
+                </div>
+                <button class="btn" style="margin-top:12px" @click="toggleHabit(h.id)">
+                  <span x-text="isHabitDone(h.id) ? '✓ Đã làm hôm nay' : 'Tick hôm nay'"></span>
+                </button>
+              </div>
+            </template>
+          </div>
+          <p x-show="!db.habits.length" class="empty">Chưa có habit. Thêm ở trên.</p>
+        </div>
+      </template>
+
+      <!-- JOURNAL -->
+      <template x-if="view==='journal'">
+        <div>
+          <h1 class="page-title">📓 Journal</h1>
+          <div class="card glass">
+            <textarea class="textarea" x-model="newJournal.text" placeholder="Hôm nay thế nào... (3 điều biết ơn, 1 bài học, cảm xúc)"></textarea>
+            <div class="row" style="margin-top:10px">
+              <select class="input" x-model="newJournal.mood" style="max-width:200px">
+                <option value="😄">😄 Vui</option>
+                <option value="🙂">🙂 Bình thường</option>
+                <option value="😐">😐 Trung tính</option>
+                <option value="😔">😔 Buồn</option>
+                <option value="😣">😣 Stress</option>
+              </select>
+              <button class="btn primary" @click="addJournal()">Lưu entry</button>
+            </div>
+          </div>
+
+          <template x-for="j in sortedJournal()" :key="j.id">
+            <div class="card glass">
+              <div class="row row-between">
+                <div class="row" style="gap:10px">
+                  <span style="font-size:22px" x-text="j.mood"></span>
+                  <div>
+                    <div class="task-title" x-text="j.date"></div>
+                    <div class="muted small" x-text="timeAgo(j.created)"></div>
+                  </div>
+                </div>
+                <button class="icon-btn" @click="deleteJournal(j.id)">✕</button>
+              </div>
+              <p class="journal-body" x-text="j.text"></p>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- GOALS -->
+      <template x-if="view==='goals'">
+        <div>
+          <h1 class="page-title">🎯 Goals</h1>
+          <div class="card glass">
+            <div class="row">
+              <input class="input" x-model="newGoal.title" placeholder="Mục tiêu..." />
+              <input class="input" type="date" x-model="newGoal.deadline" />
+              <input class="input" x-model="newGoal.category" placeholder="Lĩnh vực" style="max-width:180px" />
+              <button class="btn primary" @click="addGoal()">+ Thêm</button>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <template x-for="g in db.goals" :key="g.id">
+              <div class="card glass">
+                <div class="row row-between">
+                  <div>
+                    <div class="task-title" x-text="g.title"></div>
+                    <div class="muted small" x-text="(g.category||'—') + ' · ' + (g.deadline||'không deadline')"></div>
+                  </div>
+                  <button class="icon-btn" @click="deleteGoal(g.id)">✕</button>
+                </div>
+                <div class="progress">
+                  <div class="progress-fill" :style="'width:'+g.progress+'%'"></div>
+                </div>
+                <div class="row row-between" style="margin-top:8px">
+                  <input type="range" min="0" max="100" x-model.number="g.progress" style="flex:1" />
+                  <span class="muted small" x-text="g.progress + '%'"></span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <p x-show="!db.goals.length" class="empty">Chưa có mục tiêu nào.</p>
+        </div>
+      </template>
+
+      <!-- FINANCE -->
+      <template x-if="view==='finance'">
+        <div>
+          <h1 class="page-title">💰 Finance</h1>
+
+          <div class="grid grid-3">
+            <template x-for="w in db.wallets" :key="w.id">
+              <div class="card glass stat">
+                <div class="stat-label" x-text="w.name"></div>
+                <div class="stat-value" x-text="fmt(w.balance)"></div>
+              </div>
+            </template>
+            <div class="card glass stat" style="border:1px dashed rgba(0,0,0,0.2)">
+              <div class="stat-label">Tổng cộng</div>
+              <div class="stat-value" x-text="fmt(totalBalance())"></div>
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="card-title">Thêm giao dịch</div>
+            <div class="row">
+              <select class="input" x-model="newTx.type" style="max-width:140px">
+                <option value="expense">Chi</option>
+                <option value="income">Thu</option>
+              </select>
+              <input class="input" type="number" x-model.number="newTx.amount" placeholder="Số tiền" />
+              <input class="input" x-model="newTx.category" placeholder="Danh mục (ăn uống, đi lại...)" />
+              <input class="input" x-model="newTx.note" placeholder="Ghi chú" />
+              <button class="btn primary" @click="addTx()">+ Thêm</button>
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="card-title">Giao dịch gần đây</div>
+            <template x-for="tx in db.transactions.slice(0,20)" :key="tx.id">
+              <div class="task">
+                <span style="font-size:20px" x-text="tx.type==='income' ? '💵' : '💸'"></span>
+                <div class="task-body">
+                  <div class="task-title" x-text="tx.category || tx.note || '—'"></div>
+                  <div class="muted small" x-text="tx.date + (tx.note ? ' · ' + tx.note : '')"></div>
+                </div>
+                <span :style="tx.type==='income' ? 'color:#34c759' : 'color:#ff3b30'" x-text="(tx.type==='income'?'+':'-') + fmt(tx.amount)"></span>
+                <button class="icon-btn" @click="deleteTx(tx.id)">✕</button>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- HEALTH -->
+      <template x-if="view==='health'">
+        <div>
+          <h1 class="page-title">🏃 Health</h1>
+
+          <div class="grid grid-2">
+            <div class="card glass">
+              <div class="card-title">😴 Giấc ngủ hôm nay</div>
+              <div class="row">
+                <input class="input" type="number" step="0.5" x-model.number="newSleep.hours" placeholder="Số giờ" />
+                <input class="input" type="number" min="1" max="5" x-model.number="newSleep.quality" placeholder="Chất lượng 1-5" />
+                <button class="btn primary" @click="logSleep()">Lưu</button>
+              </div>
+              <canvas id="sleepChart" height="80" style="margin-top:12px"></canvas>
+            </div>
+
+            <div class="card glass">
+              <div class="card-title">💧 Nước uống</div>
+              <div class="stat-value" x-text="waterToday() + ' / 8 ly'"></div>
+              <button class="btn primary" style="margin-top:8px" @click="addWater()">+ 1 ly</button>
+            </div>
+
+            <div class="card glass">
+              <div class="card-title">🏋️ Vận động</div>
+              <div class="row">
+                <input class="input" x-model="newEx.type" placeholder="Loại (chạy, gym...)" />
+                <input class="input" type="number" x-model.number="newEx.minutes" placeholder="Phút" />
+                <button class="btn primary" @click="logExercise()">Lưu</button>
+              </div>
+            </div>
+
+            <div class="card glass">
+              <div class="card-title">😊 Mood hôm nay</div>
+              <div class="row">
+                <template x-for="m in ['😄','🙂','😐','😔','😣']" :key="m">
+                  <button class="mood-btn" :class="{active: todayMood()===m}" @click="logMood(m)" x-text="m"></button>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- SETTINGS -->
+      <template x-if="view==='settings'">
+        <div>
+          <h1 class="page-title">⚙️ Settings</h1>
+
+          <div class="card glass">
+            <div class="card-title">Hồ sơ</div>
+            <div class="row">
+              <input class="input" x-model="db.profile.name" placeholder="Tên bạn" />
+              <input class="input" x-model="db.settings.currency" placeholder="Tiền tệ (VND)" />
+              <input class="input" type="number" x-model.number="db.settings.dailyBudget" placeholder="Ngân sách chi tiêu/ngày" />
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="card-title">Backup & Restore</div>
+            <div class="row">
+              <button class="btn" @click="exportAll()">💾 Tải backup toàn bộ (JSON)</button>
+              <label class="btn">
+                📂 Import backup
+                <input type="file" accept="application/json" @change="importAll($event)" style="display:none" />
+              </label>
+              <button class="btn" style="color:#ff3b30" @click="resetAll()">🗑 Xoá toàn bộ dữ liệu</button>
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="card-title">Giao diện</div>
+            <div class="row">
+              <button class="btn" @click="toggleTheme()">
+                <span x-text="db.settings.theme==='dark' ? '☀️ Chuyển sáng' : '🌙 Chuyển tối'"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+    </section>
+  </main>
+
+  <!-- EXPORT MODAL -->
+  <div class="modal-backdrop" x-show="showExport" x-cloak @click.self="showExport=false">
+    <div class="modal glass" @click.stop>
+      <div class="row row-between">
+        <h2 style="margin:0">📤 Export dữ liệu</h2>
+        <button class="icon-btn" @click="showExport=false">✕</button>
+      </div>
+
+      <div class="row" style="margin-top:16px">
+        <div style="flex:1">
+          <div class="card-title">Khoảng thời gian</div>
+          <select class="input" x-model="exportPeriod">
+            <option value="day">Hôm nay</option>
+            <option value="week">Tuần này</option>
+            <option value="month">Tháng này</option>
+            <option value="quarter">Quý này</option>
+            <option value="year">Năm nay</option>
+            <option value="all">Toàn bộ</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <div class="card-title">Định dạng</div>
+          <select class="input" x-model="exportType">
+            <option value="ai">🤖 Prompt cho AI (khuyên dùng)</option>
+            <option value="md">📝 Markdown report</option>
+            <option value="json">🗄 JSON raw</option>
+            <option value="csv">📊 CSV</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-top:16px">Xem trước</div>
+      <textarea class="textarea" readonly rows="14" x-model="exportPreview" style="font-family:monospace;font-size:12px"></textarea>
+
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" @click="downloadExport()">⬇️ Tải file</button>
+        <button class="btn" @click="copyExport()">📋 Copy vào clipboard</button>
+        <span class="muted small" x-show="copiedMsg" x-text="copiedMsg"></span>
+      </div>
+
+      <div class="muted small" style="margin-top:14px">
+        💡 Cách dùng: chọn <b>Prompt cho AI</b> → Copy → dán vào ChatGPT / Claude / Gemini. AI sẽ phân tích và trả về insight cho bạn.
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
