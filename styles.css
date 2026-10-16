@@ -19,9 +19,9 @@ body.dark { background: radial-gradient(at 15% 15%, rgba(49,46,129,0.5) 0%, tran
 body.dark .glass { background: linear-gradient(135deg, rgba(50,50,62,0.75), rgba(22,22,30,0.5)); border-color: rgba(255,255,255,0.09); }
 
 #app, [x-data] { min-height: 100vh; }
-.sidebar { position:fixed; top:14px; left:14px; bottom:14px; width:240px; border-radius:24px; padding:16px 12px 12px; display:flex; flex-direction:column; z-index:40; transition: transform 0.4s cubic-bezier(0.32,0.72,0,1); overflow:hidden; }
-.sidebar.closed { transform: translateX(calc(-100% - 20px)); }
-.sidebar-toggle { position:fixed; top:22px; left:22px; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:50; font:inherit; color:var(--text); font-size:16px; transition: all 0.25s; }
+aside.sidebar { position:fixed; top:14px; left:14px; bottom:14px; width:240px; border-radius:24px; padding:16px 12px 12px; display:flex; flex-direction:column; z-index:40; transition: transform 0.4s cubic-bezier(0.32,0.72,0,1); overflow:hidden; }
+aside.sidebar.closed { transform: translateX(calc(-100% - 20px)); }
+button.sidebar-toggle { position:fixed; top:22px; left:22px; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:50; font:inherit; color:var(--text); font-size:16px; transition: all 0.25s; }
 .sidebar-toggle:hover { transform: scale(1.08); }
 .backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.2); backdrop-filter: blur(4px); z-index:35; display:none; }
 @media (max-width:900px) { .backdrop { display:block; } }
