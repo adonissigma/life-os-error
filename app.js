@@ -14,6 +14,7 @@ import './modules/meals.js';         // ← mới
 import './modules/learning.js';      // ← mới
 import './modules/relationships.js'; // ← mới
 import './modules/archive.js';
+import './modules/glass.js';
 import './modules/goals.js';
 import './modules/finance.js';
 import './modules/health.js';
@@ -27,6 +28,51 @@ Alpine.data('lifeOS', () => ({
   exportPeriod: 'week', exportSection: 'all', exportType: 'ai',
   exportPreview: '', copiedMsg: '',
   paletteOpen: false, paletteQuery: '',
+
+  diExpanded: false,
+
+  bnItems() {
+    return [
+      { id:'dashboard', icon:'🏠', label:'Home' },
+      { id:'tasks',     icon:'✅', label:'Task' },
+      { id:'timeline',  icon:'⏱', label:'Time' },
+      { id:'habits',    icon:'🔁', label:'Habit' },
+      { id:'journal',   icon:'📓', label:'Log' },
+    ];
+  },
+  bnIndex() {
+    const idx = this.bnItems().findIndex(i => i.id === this.view);
+    return idx < 0 ? 0 : idx;
+  },
+  diCompactText() {
+    const d = new Date();
+    return d.toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+  },
+  diGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return 'Chào buổi sáng';
+    if (h < 18) return 'Chào buổi chiều';
+    return 'Chào buổi tối';
+  },
+  diNextTask() {
+    const today = new Date().toISOString().slice(0,10);
+    const next = this.$store.db.tasks
+      .filter(t => !t.done && (t.due === today || t.date === today) && t.start)
+      .sort((a,b) => a.start.localeCompare(b.start))[0];
+    if (!next) return '';
+    return `Tiếp: ${next.title} · ${next.start}`;
+  },
+  diHabitsLine() {
+    const db = this.$store.db;
+    const today = new Date().toISOString().slice(0,10);
+    const done = db.habits.filter(h => db.habitLogs[h.id]?.[today]).length;
+    return `Habits ${done}/${db.habits.length}`;
+  },
+  diWaterLine() {
+    const db = this.$store.db;
+    const today = new Date().toISOString().slice(0,10);
+    return `Nước ${db.health.water[today] || 0}/8 ly`;
+  },
 
   get nav() { return LifeOS.groups(); },
 
@@ -43,8 +89,19 @@ Alpine.data('lifeOS', () => ({
       if ((e.metaKey || e.ctrlKey) && k === 'b') { e.preventDefault(); this.sidebarOpen = !this.sidebarOpen; }
       if (e.key === 'Escape') this.paletteOpen = false;
     });
-  },
 
+    // Apply glass config on load ⬇️ THÊM ĐOẠN NÀY
+    this.$nextTick(() => {
+      const g = this.$store.db.settings.glass;
+      if (!g) return;
+      const r = document.documentElement.style;
+      r.setProperty('--glass-blur', g.blur + 'px');
+      r.setProperty('--glass-opacity', g.opacity);
+      r.setProperty('--glass-sat', g.saturation + '%');
+      r.setProperty('--glass-border', g.border);
+    });
+  },
+  
   toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; },
   toggleTheme() { this.$store.db.settings.theme = this.$store.db.settings.theme === 'dark' ? 'light' : 'dark'; },
 
