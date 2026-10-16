@@ -56,7 +56,7 @@ export const LifeOS = {
   groups() {
   const g = {};
   this.modules.forEach(m => {
-    if (m.group === '__hidden') return;   // ← THÊM DÒNG NÀY
+    if (m.group === '__hidden') return;
     if (!g[m.group]) g[m.group] = { group: m.group, order: m.groupOrder ?? 99, items: [] };
     g[m.group].items.push(m);
   });
