@@ -9,6 +9,10 @@ import './modules/week.js';
 import './modules/tasks.js';
 import './modules/habits.js';
 import './modules/journal.js';
+import './modules/reviews.js';       // ← mới
+import './modules/meals.js';         // ← mới
+import './modules/learning.js';      // ← mới
+import './modules/relationships.js'; // ← mới
 import './modules/archive.js';
 import './modules/goals.js';
 import './modules/finance.js';
