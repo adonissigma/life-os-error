@@ -4,12 +4,42 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Life OS</title>
-<link rel="stylesheet" href="styles.css?v=5" />
-<script type="module" src="app.js?v=6"></script>
+<link rel="stylesheet" href="styles.css?v=7" />
+<script type="module" src="app.js?v=7"></script>
 </head>
 <body>
 <div x-data="lifeOS" x-cloak>
 
+  <!-- DYNAMIC ISLAND -->
+<template x-if="$store.db.settings.glass.dynamicIsland">
+  <div class="dynamic-island" :class="{expanded: diExpanded}" @click="diExpanded = !diExpanded">
+    <div class="di-compact">
+      <span class="di-dot"></span>
+      <span class="di-compact-text" x-text="diCompactText()"></span>
+    </div>
+    <div class="di-expanded">
+      <div class="di-expanded-inner">
+        <div class="di-line">
+          <span class="di-badge">🗓</span>
+          <span x-text="diGreeting()"></span>
+        </div>
+        <div class="di-line" x-show="diNextTask()">
+          <span class="di-badge">⏱</span>
+          <span x-text="diNextTask()"></span>
+        </div>
+        <div class="di-line">
+          <span class="di-badge">🔁</span>
+          <span x-text="diHabitsLine()"></span>
+        </div>
+        <div class="di-line">
+          <span class="di-badge">💧</span>
+          <span x-text="diWaterLine()"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+  
   <button class="sidebar-toggle glass" @click="toggleSidebar()">
     <span x-text="sidebarOpen ? '◀' : '☰'"></span>
   </button>
@@ -115,6 +145,19 @@
     </div>
   </div>
 
+  <!-- BOTTOM NAV (mobile) -->
+<template x-if="$store.db.settings.glass.bottomNav">
+  <nav class="bottom-nav">
+    <div class="bn-pill" :style="'transform: translateX(' + bnIndex()*100 + '%)'"></div>
+    <template x-for="(it, i) in bnItems()" :key="it.id">
+      <button class="bn-item" :class="{active: view===it.id}" @click="view=it.id">
+        <span class="bn-icon" x-text="it.icon"></span>
+        <span class="bn-label" x-text="it.label"></span>
+      </button>
+    </template>
+  </nav>
+</template>
+  
 </div>
 </body>
 </html>
