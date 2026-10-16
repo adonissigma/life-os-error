@@ -56,11 +56,12 @@ export const LifeOS = {
   groups() {
     const g = {};
     this.modules.forEach(m => {
+      if (m.group === '__hidden') return;  // ← thêm dòng này
       if (!g[m.group]) g[m.group] = { group: m.group, order: m.groupOrder ?? 99, items: [] };
       g[m.group].items.push(m);
-    });
+  });
     return Object.values(g).sort((a,b) => a.order - b.order);
-  },
+},
   deepMerge,
   helpers: {
     uid, todayISO, fmtDate,
