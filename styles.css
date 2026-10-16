@@ -139,3 +139,17 @@ body.dark .timeline { background: rgba(0,0,0,0.15); }
 .tl-block-title { font-weight:600; font-size:13px; margin:2px 0; }
 .tl-block-note { font-size:11px; color: var(--muted); }
 .tl-block-cat { font-size:10px; font-weight:600; margin-top:2px; text-transform:uppercase; letter-spacing:0.05em; }
+
+/* === week module === */
+.week-grid { display:grid; grid-template-columns: repeat(7,1fr); gap:10px; }
+@media (max-width:900px) { .week-grid { grid-template-columns: 1fr; } }
+.week-col { padding:12px; min-height:200px; }
+.week-col-head { display:flex; flex-direction:column; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.week-col-day { font-weight:700; font-size:12px; text-transform:uppercase; }
+.week-col-date { font-size:11px; color:var(--muted); }
+.week-col-pct { font-size:11px; padding:2px 8px; border-radius:12px; margin-top:6px; background: var(--accent); color:white; font-weight:600; }
+.week-task { padding:6px 8px; border-radius:6px; margin-bottom:4px; font-size:12px; cursor:pointer; background: rgba(0,0,0,0.03); }
+.week-task.done { text-decoration: line-through; opacity:0.5; }
+body.dark .week-task { background: rgba(255,255,255,0.05); }
+.week-habit { padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; color: var(--muted); }
+.week-habit.on { background: rgba(10,132,255,0.15); color: var(--accent); font-weight:600; }
