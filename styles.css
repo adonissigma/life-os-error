@@ -164,3 +164,9 @@ body.dark .week-task { background: rgba(255,255,255,0.05); }
 .ht-cell.on { background: linear-gradient(135deg, var(--accent), #bf5af2); box-shadow: 0 2px 6px rgba(10,132,255,0.4); }
 body.dark .ht-cell { background: rgba(255,255,255,0.06); }
 .ht-pct { font-weight:600; color: var(--accent); }
+
+/* === archive module === */
+.arc-entry { padding:12px; border-radius:10px; background: rgba(0,0,0,0.03); margin-bottom:8px; }
+body.dark .arc-entry { background: rgba(255,255,255,0.04); }
+.arc-entry-head { display:flex; gap:10px; align-items:center; margin-bottom:6px; }
+.arc-entry p { margin:0; white-space:pre-wrap; line-height:1.5; }
