@@ -170,3 +170,348 @@ body.dark .ht-cell { background: rgba(255,255,255,0.06); }
 body.dark .arc-entry { background: rgba(255,255,255,0.04); }
 .arc-entry-head { display:flex; gap:10px; align-items:center; margin-bottom:6px; }
 .arc-entry p { margin:0; white-space:pre-wrap; line-height:1.5; }
+
+/* ═══════════════════════════════════════════════════════
+   LIQUID GLASS UI — iOS 27 inspired
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+  --glass-blur: 30px;
+  --glass-opacity: 0.55;
+  --glass-sat: 180%;
+  --glass-border: 0.6;
+}
+
+/* ─── Multi-layer Liquid Glass ─── */
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255, calc(var(--glass-opacity) + 0.15)) 0%,
+    rgba(255,255,255, calc(var(--glass-opacity) - 0.08)) 40%,
+    rgba(255,255,255, calc(var(--glass-opacity) + 0.05)) 100%
+  );
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border: 1px solid rgba(255,255,255, calc(var(--glass-border) + 0.2));
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 -1px 0 rgba(255,255,255,0.15) inset,
+    0 12px 40px rgba(31,38,135,0.10),
+    0 2px 8px rgba(31,38,135,0.05);
+  overflow: hidden;
+}
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.55) 0%, transparent 25%, transparent 75%, rgba(255,255,255,0.25) 100%),
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.5) 0%, transparent 40%);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: -1;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 80% 100%, rgba(120,180,255,0.15), transparent 50%);
+  mix-blend-mode: soft-light;
+  z-index: -1;
+}
+body.dark .glass {
+  background: linear-gradient(
+    135deg,
+    rgba(60,60,75, calc(var(--glass-opacity) + 0.15)) 0%,
+    rgba(35,35,45, calc(var(--glass-opacity) - 0.05)) 40%,
+    rgba(50,50,65, calc(var(--glass-opacity) + 0.08)) 100%
+  );
+  border-color: rgba(255,255,255, calc(var(--glass-border) * 0.3));
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.12) inset,
+    0 -1px 0 rgba(255,255,255,0.04) inset,
+    0 12px 40px rgba(0,0,0,0.45);
+}
+body.dark .glass::before {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 25%, transparent 75%, rgba(255,255,255,0.08) 100%),
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,0.15) 0%, transparent 40%);
+}
+
+/* ─── DYNAMIC ISLAND ─── */
+.dynamic-island {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  cursor: pointer;
+  user-select: none;
+  width: 180px;
+  height: 36px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #0a0a0f 0%, #05050a 100%);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08) inset,
+    0 1px 0 rgba(255,255,255,0.15) inset,
+    0 12px 32px rgba(0,0,0,0.5),
+    0 4px 12px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  overflow: hidden;
+  transition:
+    width 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    height 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-radius 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 13px;
+}
+.dynamic-island.expanded {
+  width: 380px;
+  height: 170px;
+  border-radius: 36px;
+}
+@media (max-width: 500px) {
+  .dynamic-island.expanded { width: 92vw; }
+}
+
+.di-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  transition: opacity 0.2s;
+  font-family: ui-monospace, "SF Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+.dynamic-island.expanded .di-compact { opacity: 0; }
+
+.di-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #4ade80, #16a34a);
+  box-shadow: 0 0 8px rgba(74,222,128,0.8);
+  animation: diPulse 2s ease-in-out infinite;
+}
+@keyframes diPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+
+.di-expanded {
+  position: absolute;
+  inset: 0;
+  padding: 22px 26px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s 0.15s;
+}
+.dynamic-island.expanded .di-expanded {
+  opacity: 1;
+  pointer-events: auto;
+}
+.di-expanded-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.di-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+}
+.di-badge {
+  width: 26px; height: 26px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.08);
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+/* ─── BOTTOM NAV (mobile) ─── */
+.bottom-nav {
+  display: none;
+}
+@media (max-width: 900px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0));
+    z-index: 90;
+    padding: 8px;
+    border-radius: 26px;
+    height: 68px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.65), rgba(255,255,255,0.35));
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.7) inset,
+      0 12px 40px rgba(31,38,135,0.18);
+    position: fixed;
+    overflow: hidden;
+    justify-content: space-around;
+    align-items: center;
+  }
+  body.dark .bottom-nav {
+    background: linear-gradient(135deg, rgba(50,50,62,0.75), rgba(22,22,30,0.5));
+    border-color: rgba(255,255,255,0.1);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .content { padding-bottom: 110px !important; }
+}
+.bn-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font: inherit;
+  position: relative;
+  z-index: 2;
+  transition: color 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bn-item.active { color: var(--accent); }
+.bn-icon { font-size: 20px; line-height: 1; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.bn-item.active .bn-icon { transform: scale(1.15) translateY(-1px); }
+.bn-label { font-size: 10px; letter-spacing: 0.02em; font-weight: 500; }
+.bn-pill {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: calc((100% - 16px) / 5);
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(10,132,255,0.18), rgba(191,90,242,0.15));
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.5) inset,
+    0 4px 12px rgba(10,132,255,0.15);
+  transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* ─── iOS-style slider ─── */
+.ios-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  margin: 6px 0;
+}
+.ios-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), #bf5af2);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.4) inset,
+    0 1px 2px rgba(0,0,0,0.1);
+}
+.ios-range::-moz-range-track {
+  height: 8px; border-radius: 8px;
+  background: linear-gradient(90deg, var(--accent), #bf5af2);
+}
+.ios-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.06);
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.2),
+    0 0 0 0.5px rgba(0,0,0,0.04);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ios-range:active::-webkit-slider-thumb {
+  transform: scale(1.15, 0.92);
+}
+.ios-range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  border: 0.5px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ─── Sidebar parallax glass boost ─── */
+.sidebar {
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255, calc(var(--glass-opacity) + 0.1)) 0%,
+    rgba(255,255,255, calc(var(--glass-opacity) - 0.15)) 100%
+  );
+  backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(var(--glass-sat));
+}
+body.dark .sidebar {
+  background: linear-gradient(
+    135deg,
+    rgba(50,50,62, calc(var(--glass-opacity) + 0.15)) 0%,
+    rgba(25,25,35, calc(var(--glass-opacity) - 0.05)) 100%
+  );
+}
+
+/* ─── Modal liquid entrance ─── */
+.modal-backdrop {
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.modal {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.65));
+  backdrop-filter: blur(50px) saturate(200%);
+  -webkit-backdrop-filter: blur(50px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 24px 80px rgba(31,38,135,0.22);
+}
+body.dark .modal {
+  background: linear-gradient(135deg, rgba(55,55,68,0.85), rgba(30,30,42,0.75));
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* ─── Command palette liquid ─── */
+.palette {
+  background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(255,255,255,0.68));
+  backdrop-filter: blur(56px) saturate(200%);
+  -webkit-backdrop-filter: blur(56px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 32px 80px rgba(31,38,135,0.28);
+}
+body.dark .palette {
+  background: linear-gradient(135deg, rgba(55,55,68,0.9), rgba(30,30,42,0.8));
+  border-color: rgba(255,255,255,0.12);
+}
+
+/* ─── Cards — subtler than before ─── */
+.card.glass { padding: 20px; }
+.card.glass::before { opacity: 0.6; }
+
+/* ─── Topbar removed (was only used before) ─── */
+.topbar { display: none; }
