@@ -68,4 +68,32 @@ LifeOS.register({
             <button class="export-btn" @click="exportDOC()">📄 .doc</button>
           </div>
         </div>
-        <div class="grid grid
+        <div class="grid grid-4">
+          <div class="card glass stat"><div class="stat-label">Task xong</div><div class="stat-value" x-text="tasks().length"></div></div>
+          <div class="card glass stat"><div class="stat-label">Journal</div><div class="stat-value" x-text="journals().length"></div></div>
+          <div class="card glass stat"><div class="stat-label">Giao dịch</div><div class="stat-value" x-text="txs().length"></div></div>
+          <div class="card glass stat"><div class="stat-label">Habit ticks</div><div class="stat-value" x-text="habitTicks()"></div></div>
+        </div>
+        <div class="card glass">
+          <div class="card-title">📓 Journal</div>
+          <template x-for="j in journals()" :key="j.id">
+            <div class="arc-entry"><div class="arc-entry-head"><span style="font-size:20px" x-text="j.mood"></span><b x-text="j.date"></b></div><p x-text="j.text"></p></div>
+          </template>
+          <p x-show="!journals().length" class="empty">Không có journal trong kỳ này.</p>
+        </div>
+        <div class="card glass">
+          <div class="card-title">✅ Task</div>
+          <template x-for="t in tasks()" :key="t.id">
+            <div class="task"><div class="cat-dot" :style="'background:'+catColor(t.categoryId)"></div><span class="muted small" x-text="t.completedAt?.slice(0,10)||t.due||''"></span><span class="task-title" x-text="t.title"></span></div>
+          </template>
+        </div>
+        <div class="card glass">
+          <div class="card-title">💰 Giao dịch</div>
+          <template x-for="tx in txs()" :key="tx.id">
+            <div class="task"><span x-text="tx.type==='income'?'💵':'💸'"></span><span class="muted small" x-text="tx.date"></span><div class="task-body"><div class="task-title" x-text="tx.category||tx.note"></div></div><span :style="tx.type==='income'?'color:#34c759':'color:#ff3b30'" x-text="(tx.type==='income'?'+':'-')+fmt(tx.amount)"></span></div>
+          </template>
+        </div>`;
+      },
+    };
+  },
+});
