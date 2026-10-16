@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Life OS</title>
 <link rel="stylesheet" href="styles.css?v=5" />
-<script type="module" src="app.js?v=5"></script>
+<script type="module" src="app.js?v=6"></script>
 </head>
 <body>
 <div x-data="lifeOS" x-cloak>
@@ -50,6 +50,10 @@
       <template x-if="view==='tasks'"><div x-data="m_tasks" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
       <template x-if="view==='habits'"><div x-data="m_habits" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
       <template x-if="view==='journal'"><div x-data="m_journal" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
+      <template x-if="view==='reviews'"><div x-data="m_reviews" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
+      <template x-if="view==='meals'"><div x-data="m_meals" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
+      <template x-if="view==='learning'"><div x-data="m_learning" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
+      <template x-if="view==='relationships'"><div x-data="m_relationships" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
       <template x-if="view==='archive'"><div x-data="m_archive" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
       <template x-if="view==='goals'"><div x-data="m_goals" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
       <template x-if="view==='finance'"><div x-data="m_finance" x-html="tpl" x-init="$nextTick(()=>Alpine.initTree($el))"></div></template>
