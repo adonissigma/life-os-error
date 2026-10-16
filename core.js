@@ -54,13 +54,13 @@ export const LifeOS = {
   register(m) { this.modules.push(m); this.modules.sort((a,b) => (a.order ?? 99) - (b.order ?? 99)); },
   get(id) { return this.modules.find(m => m.id === id); },
   groups() {
-    const g = {};
-    this.modules.forEach(m => {
-      if (m.group === '__hidden') return;  // ← thêm dòng này
-      if (!g[m.group]) g[m.group] = { group: m.group, order: m.groupOrder ?? 99, items: [] };
-      g[m.group].items.push(m);
+  const g = {};
+  this.modules.forEach(m => {
+    if (m.group === '__hidden') return;   // ← THÊM DÒNG NÀY
+    if (!g[m.group]) g[m.group] = { group: m.group, order: m.groupOrder ?? 99, items: [] };
+    g[m.group].items.push(m);
   });
-    return Object.values(g).sort((a,b) => a.order - b.order);
+  return Object.values(g).sort((a,b) => a.order - b.order);
 },
   deepMerge,
   helpers: {
