@@ -5,7 +5,18 @@ export const todayISO = () => new Date().toISOString().slice(0,10);
 export const fmtDate = d => d.toISOString().slice(0,10);
 
 export const DEFAULT_DB = {
-  settings: { theme:'light', currency:'VND', dailyBudget:0 },
+  settings: {
+  theme: 'light', currency: 'VND', dailyBudget: 0,
+  glass: {
+    blur: 30,          // backdrop-filter blur px
+    opacity: 0.55,     // tint strength 0..1
+    saturation: 180,   // backdrop-filter saturate %
+    border: 0.6,       // border alpha
+    dynamicIsland: true,
+    bottomNav: true,
+    highlight: true,
+  },
+},
   profile: { name:'' },
   categories: [
     { id:'c1', name:'Học tập', color:'#0a84ff' },
