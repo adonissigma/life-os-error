@@ -153,3 +153,14 @@ body.dark .timeline { background: rgba(0,0,0,0.15); }
 body.dark .week-task { background: rgba(255,255,255,0.05); }
 .week-habit { padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; color: var(--muted); }
 .week-habit.on { background: rgba(10,132,255,0.15); color: var(--accent); font-weight:600; }
+
+/* === habits module === */
+.ht-table { width:100%; border-collapse: collapse; font-size:12px; }
+.ht-table th, .ht-table td { padding:4px 6px; text-align:center; border-bottom:1px solid var(--border); }
+.ht-habit-col { text-align:left; min-width:160px; font-weight:500; }
+.ht-day-head { font-weight:600; font-size:10px; color: var(--muted); min-width:22px; }
+.ht-cell { width:22px; height:22px; cursor:pointer; border-radius:4px; transition: all 0.15s; background: rgba(0,0,0,0.04); }
+.ht-cell:hover { transform: scale(1.2); }
+.ht-cell.on { background: linear-gradient(135deg, var(--accent), #bf5af2); box-shadow: 0 2px 6px rgba(10,132,255,0.4); }
+body.dark .ht-cell { background: rgba(255,255,255,0.06); }
+.ht-pct { font-weight:600; color: var(--accent); }
