@@ -123,3 +123,19 @@ body.dark .progress { background: rgba(255,255,255,0.08); }
 ::-webkit-scrollbar { width:8px; height:8px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius:4px; }
 body.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
+
+/* === timeline module === */
+.cat-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:20px; border:1.5px solid; }
+.cat-color { width:22px; height:22px; border:none; background:transparent; cursor:pointer; padding:0; }
+.cat-name { border:none; background:transparent; font:inherit; font-size:12px; color:inherit; outline:none; width:80px; }
+.timeline { position:relative; border-radius:14px; background: rgba(0,0,0,0.02); overflow:hidden; }
+body.dark .timeline { background: rgba(0,0,0,0.15); }
+.tl-hour { position:absolute; left:0; right:0; border-top:1px solid var(--border); padding-left:8px; }
+.tl-hour-label { font-size:10px; color: var(--muted); font-family: ui-monospace,monospace; }
+.tl-block { position:absolute; border-radius:8px; padding:6px 10px; cursor:pointer; transition: all 0.15s; overflow:hidden; backdrop-filter: blur(4px); }
+.tl-block:hover { filter: brightness(1.1); z-index:10; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.tl-block-head { display:flex; justify-content:space-between; gap:4px; }
+.tl-block-time { font-size:10px; color: var(--muted); font-family: ui-monospace,monospace; }
+.tl-block-title { font-weight:600; font-size:13px; margin:2px 0; }
+.tl-block-note { font-size:11px; color: var(--muted); }
+.tl-block-cat { font-size:10px; font-weight:600; margin-top:2px; text-transform:uppercase; letter-spacing:0.05em; }
