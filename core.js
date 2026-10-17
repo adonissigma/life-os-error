@@ -1,11 +1,15 @@
-// DÁN ĐOẠN NÀY LÊN ĐẦU FILE core.js
-export const SUPABASE_URL = 'DÁN_URL_CỦA_BẠN_VÀO_ĐÂY'; 
-export const SUPABASE_KEY = 'DÁN_ANON_KEY_CỦA_BẠN_VÀO_ĐÂY';
+// ============================================================
+// Life OS — Core Kernel & Sync Engine
+// ============================================================
+
+// SUPABASE CREDENTIALS (Của Verse)
+export const SUPABASE_URL = 'https://azoqslbeowrdcbcyqmle.supabase.co';
+export const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6b3FzbGJlb3dyZGNiY3lxbWxlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxODU5NzYsImV4cCI6MjEwNzc2MTk3Nn0.kX6VvmirUf4xJFDgz4hZIDB23RHdlJ07GNGUXxvZUe0';
 
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 let syncTimeout;
 
-export const DB_KEY = 'lifeos.db.v8';
+export const DB_KEY = 'lifeos.db.v9';
 export const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
 export const todayISO = () => new Date().toISOString().slice(0,10);
 export const fmtDate = d => d.toISOString().slice(0,10);
@@ -13,19 +17,34 @@ export const fmtDate = d => d.toISOString().slice(0,10);
 export const DEFAULT_DB = {
   settings: {
     theme: 'dark', currency: 'VND', dailyBudget: 0,
-    glass: { blur: 40, opacity: 0.25, saturation: 200, dynamicIsland: true, bottomNav: true }, // Mới: siêu trong suốt
+    glass: { blur: 40, opacity: 0.15, saturation: 200, dynamicIsland: true, bottomNav: true },
   },
-  profile: { name:'' }, categories: [], tasks: [], habits: [], habitLogs: {}, journal: [], goals: [], vision: {}, wallets: [], transactions: [], health: {}, reviews: []
+  profile: { name:'' },
+  categories: [
+    { id:'c1', name:'Học tập', color:'#0a84ff' },
+    { id:'c2', name:'Làm việc', color:'#ff9500' },
+    { id:'c3', name:'Cá nhân', color:'#bf5af2' },
+    { id:'c4', name:'Sức khỏe', color:'#34c759' },
+    { id:'c5', name:'Giải trí', color:'#ff3b30' },
+  ],
+  tasks: [], habits: [], habitLogs: {}, journal: [], goals: [],
+  vision: {}, wallets: [{ id: 'w1', name: 'Tiền mặt', balance: 0 }], transactions: [], health: { sleep: [], exercise: [], mood: [], water: {} }, reviews: []
 };
 
-// ... (Giữ nguyên phần deepMerge, LifeOS.register, Exporter) ...
+export const deepMerge = (a, b) => {
+  const o = { ...a };
+  for (const k in b) {
+    if (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k]) && a[k] && typeof a[k] === 'object' && !Array.isArray(a[k])) o[k] = deepMerge(a[k], b[k]);
+    else o[k] = b[k];
+  }
+  return o;
+};
 
-// Thêm phần Sync vào cuối file, trước registerStores
 export const LifeOS = {
-  // ... (Giữ nguyên các hàm cũ của LifeOS) ...
   modules: [],
   register(m) { this.modules.push(m); this.modules.sort((a,b) => (a.order ?? 99) - (b.order ?? 99)); },
-  groups() { 
+  get(id) { return this.modules.find(m => m.id === id); },
+  groups() {
     const g = {};
     this.modules.forEach(m => {
       if (m.group === '__hidden') return;
@@ -34,30 +53,25 @@ export const LifeOS = {
     });
     return Object.values(g).sort((a,b) => a.order - b.order);
   },
-  
-  // --- SYNC ENGINE ---
+  deepMerge,
   client: supabase,
   user: null,
-  
+
+  // --- SYNC ENGINE ---
   async initSupabase(onAuthChange) {
     if (!this.client) return;
-    
-    // Check session
     const { data: { session } } = await this.client.auth.getSession();
     if (session) {
       this.user = session.user;
       onAuthChange(this.user);
       this.pullSync();
     }
-
-    // Listen to changes
     this.client.auth.onAuthStateChange((event, session) => {
       this.user = session?.user || null;
       onAuthChange(this.user);
       if (event === 'SIGNED_IN') this.pullSync();
     });
   },
-
   async login(email, pass, cb) {
     const { error } = await this.client.auth.signInWithPassword({ email, password: pass });
     if (error) alert(error.message); else cb();
@@ -70,35 +84,45 @@ export const LifeOS = {
     await this.client.auth.signOut();
     cb();
   },
-
   queueSync(db) {
     if (!this.user) return;
     clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(() => this.pushSync(db), 1000); // Debounce 1s
+    syncTimeout = setTimeout(() => this.pushSync(db), 1000);
   },
-
   async pushSync(db) {
     if (!this.user || !this.client) return;
-    await this.client.from('profiles').upsert({ 
-      id: this.user.id, 
-      data: db, 
-      updated_at: new Date().toISOString() 
-    });
+    await this.client.from('profiles').upsert({ id: this.user.id, data: db, updated_at: new Date().toISOString() });
   },
-
   async pullSync() {
     if (!this.user || !this.client) return;
-    const { data, error } = await this.client.from('profiles').select('data').eq('id', this.user.id).single();
+    const { data } = await this.client.from('profiles').select('data').eq('id', this.user.id).single();
     if (data && data.data) {
-      // Merge data từ cloud vào local nếu cloud mới hơn (giả lập)
-      const remoteDb = data.data;
-      window.Alpine.store('db').settings = remoteDb.settings || window.Alpine.store('db').settings;
-      window.Alpine.store('db').tasks = remoteDb.tasks || [];
-      window.Alpine.store('db').journal = remoteDb.journal || [];
-      window.Alpine.store('db').habits = remoteDb.habits || [];
-      window.Alpine.store('db').habitLogs = remoteDb.habitLogs || {};
-      window.Alpine.store('db').transactions = remoteDb.transactions || [];
-      // ... (Map các trường khác nếu cần)
+      const remote = data.data;
+      const store = window.Alpine.store('db');
+      Object.keys(remote).forEach(k => { if(remote[k] !== undefined) store[k] = remote[k]; });
     }
-  }
+  },
+
+  helpers: {
+    uid, todayISO, fmtDate,
+    fmt(n) { return (n || 0).toLocaleString('vi-VN') + ' ' + (window.Alpine?.store('db')?.settings?.currency || 'VND'); },
+    catColor(id) { const c = window.Alpine?.store('db')?.categories?.find(x => x.id === id); return c ? c.color : '#8e8e93'; },
+    catName(id) { const c = window.Alpine?.store('db')?.categories?.find(x => x.id === id); return c ? c.name : ''; },
+    download(name, content, mime = 'text/plain') {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+    },
+    shiftDate(iso, days) { const d = new Date(iso); d.setDate(d.getDate() + days); return fmtDate(d); },
+  },
+  
+  exporter: {} // (Giữ nguyên phần Exporter cũ của bạn ở đây nếu có, hoặc tôi có thể viết lại nếu cần)
 };
+
+export function registerStores(Alpine) {
+  const raw = localStorage.getItem(DB_KEY);
+  const loaded = raw ? deepMerge(JSON.parse(JSON.stringify(DEFAULT_DB)), JSON.parse(raw)) : JSON.parse(JSON.stringify(DEFAULT_DB));
+  Alpine.store('db', loaded);
+  Alpine.effect(() => { localStorage.setItem(DB_KEY, JSON.stringify(Alpine.store('db'))); });
+  LifeOS.modules.forEach(m => { Alpine.data('m_' + m.id, m.setup); });
+}
